@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Tuple
 
 from .config import Cycle
 from .dedupe import Matcher, dedupe_candidates, link_candidate_to_history
+from .ideation import generate_ideas
 from .signals import Signals, translit
 from .taxonomy import Classifier
 from .text_utils import TextNormalizer, ratio
@@ -61,6 +62,7 @@ def _month_add(d: _dt.date, months: int) -> _dt.date:
 def build_candidates(history: List[Dict], signals: Signals, cfg, cycle: Cycle,
                      warn: WarningLog) -> List[Dict]:
     raw: List[Dict] = []
+    raw += generate_ideas(history, signals, cfg, cycle, warn)   # НОВЫЕ темы из данных
     raw += _carryover_candidates(history, cfg, cycle, warn)
     raw += _case_candidates(history, warn)
     raw += _roistat_protect_candidates(history, signals, cfg, warn)
@@ -384,8 +386,14 @@ def _build_initiative(content_id, rep, members, classifier, normalizer,
         flags.add("from_sales_kam")
     if rep.get("mandatory") == "да":
         flags.add("from_product_launch")
+    # сгенерированная идея: обоснована спросом кластера (Roistat) -> засчитываем спрос
+    is_idea = bool(rep.get("_idea"))
+    if rep.get("_idea_cluster_demand"):
+        flags.add("has_roistat_traffic")
 
     priority_cluster = any(pc in cluster.lower() for pc in priority_clusters) if priority_clusters else False
+    if rep.get("_idea_cluster_demand"):
+        priority_cluster = True
 
     # анти-повтор: совпадение с опубликованной темой
     best, sc, rel = link_candidate_to_history(title, done_matcher, cfg)
@@ -407,6 +415,11 @@ def _build_initiative(content_id, rep, members, classifier, normalizer,
 
     action, cta = ROLE_ACTION.get(role, ROLE_ACTION["Build"])
     problem = CLUSTER_PROBLEM.get(cluster, "Проблема уточняется главредом")
+    evidence = _evidence_text(rep, members)
+    if is_idea:
+        evidence = ("ГИПОТЕЗА: тема сгенерирована по спросу кластера — "
+                    "подтвердить SEO-частотностью / продуктовым приоритетом / запросом продаж"
+                    + (f"; {evidence}" if evidence else ""))
 
     init.update({
         "content_id": content_id,
@@ -429,7 +442,7 @@ def _build_initiative(content_id, rep, members, classifier, normalizer,
         "related_content": related,
         "lead_potential": "", "seo_potential": "", "product_priority": "",
         "segment_relevance": "приоритетный" if priority_cluster else "",
-        "evidence_base": _evidence_text(rep, members),
+        "evidence_base": evidence,
         "effort": effort,
         "dependencies": rep.get("expert", ""),
         "expert": rep.get("expert", ""),
