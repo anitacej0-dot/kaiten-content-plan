@@ -1,0 +1,37 @@
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# --- Приватные данные Kaiten (НЕ коммитим в репозиторий) ---
+# Реальные входные выгрузки (контент-план, Метрика, Roistat, продажи и т.п.)
+inputs/current_cycle/*
+inputs/historical/*
+inputs/archive/*
+# ...но шаблоны и примеры оставляем в репозитории:
+!inputs/current_cycle/README.md
+!inputs/current_cycle/.gitkeep
+!inputs/historical/.gitkeep
+!inputs/archive/.gitkeep
+
+# Результаты прогонов (могут содержать реальные темы и данные)
+outputs/*
+!outputs/.gitkeep
+
+# Пакеты handoff с реальными темами
+handoff/packages/
+
+# --- ОС / редакторы ---
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*.xlsx
+*.tmp
+
+# Временные копии Excel, которые открыты в Excel
+~$*

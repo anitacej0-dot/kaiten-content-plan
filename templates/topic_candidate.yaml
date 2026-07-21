@@ -1,0 +1,25 @@
+content_id: CP-YYYYMM-001
+title: ""
+working_description: ""
+strategy_role: protect|convert|build|prove
+content_type: ""
+product_cluster: ""
+segment: ""
+audience_role: ""
+funnel_stage: awareness|consideration|decision|retention
+search_or_user_intent: ""
+source_signals:
+  - source: seo|analytics|sales|kam|product|launch|history|competitor|editorial
+    evidence: ""
+expected_action: ""
+product_route: ""
+primary_channel: blog|external
+canonical_or_adaptation: canonical
+parent_content_id: null
+priority_score: 0
+priority_rationale: ""
+effort: low|medium|high
+owner: ""
+expert_dependency: ""
+target_week: ""
+status: candidate|selected|approved|deferred|rejected

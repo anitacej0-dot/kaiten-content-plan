@@ -1,0 +1,48 @@
+version: 0.2
+# Общие параметры pipeline. Пути указаны относительно корня репозитория.
+
+paths:
+  inputs_current: "inputs/current_cycle"
+  inputs_historical: "inputs/historical"
+  inputs_templates: "inputs/templates"
+  outputs: "outputs"
+  handoff: "handoff/packages"
+
+# Горизонт планирования. Можно переопределить флагами CLI --start / --weeks.
+horizon:
+  weeks: 7                 # 6-7 недель
+  # start_date: null       # если не задано — берётся ближайший понедельник от «сегодня»
+  week_starts_on: "monday"
+
+ids:
+  initiative_prefix: "CP"        # CP-YYYYMM-001
+  placement_prefix: "PL"         # PL-YYYYMM-001
+
+# Как распознавать легаси-файл контент-плана в inputs/current_cycle.
+legacy_plan:
+  # Файл ищется по маске; берётся самый свежий подходящий .xlsx.
+  filename_globs: ["*контент-план*.xlsx", "*контент_план*.xlsx", "*content*plan*.xlsx", "*.xlsx"]
+  # Листы с этими словами трактуются особым образом.
+  case_sheet_markers: ["кейс"]
+  external_sheet_markers: ["внешн", "(vc)", "(habr)", "(vc) ", "(habr) "]
+  ignore_sheet_markers: ["лист", "sheet", "справочник", "инструкц"]
+  # Строка считается пустой/служебной, если тема отсутствует.
+  min_title_len: 3
+
+# Пороги нечёткого сравнения тем (0..100, шкала rapidfuzz token_set_ratio).
+dedupe:
+  duplicate_threshold: 88     # >= — почти одинаковая тема (одна инициатива/дистрибуция)
+  review_threshold: 82        # >= и < duplicate — близкая тема; каннибализация при общем кластере
+  cannibalization_threshold: 82  # похожий интент/кластер -> риск каннибализации
+  # Если у двух похожих тем РАЗНЫЕ площадки — это дистрибуция, а не дубль.
+  cross_platform_is_distribution: true
+
+# Определение «сделанных» тем, которые не тянем в новый план (только для dedupe).
+history:
+  # Сколько последних месяцев истории считать «недавними» для анти-повторов.
+  recent_months_window: 12
+  # Недоделанные темы за сколько последних месяцев тянуть в переносы (carryover).
+  carryover_lookback_months: 3
+  # Топ-N страниц Roistat по визитам -> кандидаты на Protect-обновление.
+  roistat_top_pages_for_protect: 25
+  roistat_min_leads_for_convert: 3   # заявок за период, чтобы пометить лид-потенциал
